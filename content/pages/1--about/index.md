@@ -2,36 +2,28 @@
 title: About
 ---
 
-This is a demo site of the [PersonalBlog](https://github.com/greglobinski/gatsby-starter-personal-blog) GatsbyJS starter.
+Hi! Thanks for stopping by! I'm Brian, a mechanical engineer
+turned programmer. I'm a lifelong learner and love using
+cool tech to solve challenging problems.
 
-The starter is a ready to use, easy to customize 'like theme' starter. It has everything what blog should have and some more.
+I grew up in a small town outside Kansas City, Missouri, and
+lived in Phoenix, AZ for a while. I'm married and have two
+kiddos and love to spend time with them. I studied mechanical
+and nuclear engineering at Kansas State, and quickly after
+graduating begin moving more and more into software.
 
-### Standard features:
+I spent seven years working for a small software group within
+a big engineering firm in Kansas City. Now I work as a
+software engineer at BombBomb. I'm comfortable in all kinds
+of languages, but my favorites are python, typescript,
+and C#. While I have experience in modern front-end technologies
+like Angular and React, my preference is typically on back-end
+services, making them blazing fast and beautifully written.
 
-* Easy editable content in **Markdown** files (posts, pages and parts)
-* **SEO** (sitemap generation, robot.txt, meta and OpenGraph Tags)
-* **Social** sharing (Twitter, Facebook, Google, LinkedIn)
-* **Comments** (Facebook)
-* **Images** lazy loading and `webp` support (gatsby-image)
-* Post **categories** (post list filtering)
-* Full text **searching** (Algolia)
-* **Contact** form (Netlify form handling)
-* **RSS** feed
-* **PWA** (manifest.json, offline support, favicons)
-* Google **Analytics**
-* **Favicons** generator (node script)
-* **Material UI** (@next)
+Outside of work, I love spending time with my family.
+My boys are 3 and 9mo, so they take up a lot of my time.
+When I'm not spending time with my family, I'm watching
+tv shows, playing video games, or working out.
 
-### Advanced features:
-
-* Easy customizable base **styles** via `theme` object (fonts, colors, sizes)
-* **Components** lazy loading (social sharing, comments)
-* **ESLint** (google config)
-* **Prettier** code styling
-* Custom webpack `CommonsChunkPlugin` settings
-* Webpack `BundleAnalyzerPlugin`
-* Contact **form validation** (react-material-ui-form-validator)
-
-## Instructions
-
-For detailed instructions go to [Front-end web development with Greg](https://dev.greglobinski.com/gatsby-starter-personal-blog/).
+This site was built using Greg Lobinski's
+[Personal Blog Gatsby Starter](https://github.com/greglobinski/gatsby-starter-personal-blog).
