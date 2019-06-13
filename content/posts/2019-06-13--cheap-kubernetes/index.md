@@ -114,41 +114,7 @@ gke-cheap-kubernetes-default-pool-8c8ca16c-8t7x   Ready     <none>    8m        
 Let's run something! I'll use an existing docker container for simplicity.
 We'll make a new deployment by creating a new file called `first-deploy.yaml`.
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: hello-world
-  labels:
-    app: hello-world-app
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: hello-world-app
-  template:
-    metadata:
-      labels:
-        app: hello-world-app
-    spec:
-      containers:
-      - name: hello-world
-        image: gcr.io/google-samples/hello-app:1.0
-        ports:
-        - containerPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hello-world-service
-spec:
-  selector:
-    app: hello-world-app
-  type: NodePort
-  ports:
-  - port: 8080
-    targetPort: 8080
-```
+`gist:65c22cfdb517b21538ca3368900bc836#first-deploy.yaml`
 
 Deploy the app using `kubectl apply -f first-deploy.yaml`. After
 a few seconds, try the following commands to inspect your deployment.
@@ -193,64 +159,7 @@ want to pay for that, so I'll just make my own HTTP proxy
 using nginx. Make a new file called nginx-config.yaml and populate
 it with the following:
 
-```yaml
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: nginx
-  labels:
-    app: nginx
-spec:
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-      containers:
-      - image: nginx:1.15.3-alpine
-        name: nginx
-        ports:
-        - name: http
-          containerPort: 80
-          hostPort: 80
-        volumeMounts:
-        - name: "config"
-          mountPath: "/etc/nginx"
-      volumes:
-      - name: config
-        configMap:
-          name: nginx-conf
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nginx-conf
-data:
-  nginx.conf: |
-    worker_processes 1;
-    error_log /dev/stdout info;
-
-    events {
-      worker_connections 10;
-    }
-
-    http {
-      access_log /dev/stdout;
-
-      server {
-        listen 80;
-        location /hello {
-          proxy_pass http://hello-world-service.default.svc.cluster.local:8080;
-        }
-      }
-    }
-
-```
+`gist:22abf31fee82f2e0f9746c81816a0188#nginx-config.yaml`
 
 Apply this configuration using `kubectl apply -f nginx-config.yaml`.
 Once they are created, your node (and each subsequent one) will
