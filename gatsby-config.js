@@ -96,6 +96,13 @@ module.exports = {
               wrapperStyle: `margin-bottom: 2em`
             }
           },
+          {
+            resolve: 'gatsby-remark-embed-gist',
+            options: {
+              username: 'briankopp',
+              includeDefaultCss: true
+            }
+          },
           `gatsby-remark-prismjs`,
           `gatsby-remark-copy-linked-files`,
           `gatsby-remark-smartypants`
