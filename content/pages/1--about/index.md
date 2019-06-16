@@ -1,5 +1,6 @@
 ---
 title: About
+menuTitle: About
 ---
 
 Hi! Thanks for stopping by! I'm Brian, a mechanical engineer
