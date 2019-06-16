@@ -85,25 +85,7 @@ getting the command line arguments coming through.
 In order to count keywords, we're going to need to read a file. Add `text.txt`
 to your project root with the following text:
 
-```text
-On the other hand, we denounce with righteous indignation
-and dislike men who are so beguiled and demoralized by the
-charms of pleasure of the moment, so blinded by desire,
-that they cannot foresee the pain and trouble that are bound
-to ensue; and equal blame belongs to those who fail in their
-duty through weakness of will, which is the same as saying
-through shrinking from toil and pain. These cases are
-perfectly simple and easy to distinguish. In a free hour,
-when our power of choice is untrammelled and when nothing
-prevents our being able to do what we like best, every
-pleasure is to be welcomed and every pain avoided. But in
-certain circumstances and owing to the claims of duty or
-the obligations of business it will frequently occur that
-pleasures have to be repudiated and annoyances accepted.
-The wise man therefore always holds in these matters to
-this principle of selection: he rejects pleasures to secure
-other greater pleasures, or else he endures pains to avoid worse pains.
-```
+`gist:43da8bfc760cf1909008f1a3fd5936f0#text.txt`
 
 In the `main.rs` file, import `std::fs` and add the following
 beneath the existing code.
@@ -128,28 +110,7 @@ error: process didn't exit successfully: `target\debug\keywords.exe text2.txt` (
 Let's make this a little nicer. If someone is using our binary, our error message
 should be succinct. Update your main.rs file to the following:
 
-```rust
-use std::env;
-use std::fs;
-use std::process;
-use std::io;
-
-fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    let file_name = &args[1];
-    let file_content_result = fs::read_to_string(file_name);
-    if let Err(err) = file_content_result {
-        match err.kind() {
-            io::ErrorKind::NotFound => println!("file '{}' not found", file_name),
-            _ => println!("unexpected error occurred: {}", err),
-        }
-        process::exit(1)
-    }
-    let contents = file_content_result.unwrap();
-    println!("{}", content);
-}
-```
+`gist:43da8bfc760cf1909008f1a3fd5936f0#main-read-file-contents.rs`
 
 There's a lot going on in here, especially if you're new to Rust. Let's go
 line by line.
