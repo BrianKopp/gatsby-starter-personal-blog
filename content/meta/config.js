@@ -1,8 +1,8 @@
 const colors = require("../../src/styles/colors");
 
 module.exports = {
-  siteTitle: "Personal Blog", // <title>
-  shortSiteTitle: "Personal Blog", // <title> ending for posts and pages
+  siteTitle: "CodeKopp", // <title>
+  shortSiteTitle: "Kopp's Thoughts", // <title> ending for posts and pages
   siteDescription: "Brian Kopp's Blog",
   siteUrl: "https://blog.codekopp.com",
   pathPrefix: "",
