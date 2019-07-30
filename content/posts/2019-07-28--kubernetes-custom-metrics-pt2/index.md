@@ -2,7 +2,7 @@
 title: Kubernetes Custom Metrics (part 2)
 subTitle: All things custom
 category: kubernetes
-cover: 
+cover: blueprint.jpg
 ---
 
 In the previous article, I went over how to set up an application to expose
@@ -17,37 +17,18 @@ and scale the application.
 
 Let's hop in.
 
-## Environment
-
-I'll be using `minikube` in this post, for simplicity. Some things will be
-different in a real-world cluster, but hopefully after going through this
-article, you'll have the tools you need to diagnose why your real-world
-cluster isn't working (if these exact steps don't work for your real-world cluster).
-
-```bash
-# If you want to start with a clean slate and delete your existing minikube cluster
-minikube delete
-
-# Start (or create) up your cluster
-minikube start
-
-# Make sure you're using your minikube context.
-kubectl config current-context
-
-# Set up helm. If you don't have it set up, then set it up.
-helm init
-```
-
 ## Prometheus Operator
 
-Prometheus operator is a helm package that provides some syntatic sugar for
+[Prometheus operator](https://github.com/coreos/prometheus-operator)
+is a helm package that provides some syntatic sugar for
 installing prometheus. It installs prometheus, grafana, alert-manager, and
 a bunch of other metrics-related stuff. It's really a great tool to use in your
 real-world cluster, so I'll use it here, even though it's a bit overkill for a
 minikube install.
 
-When you install prometheus-operator, it installs some custom
-resource definitions (CRDs). After installing, you can provide new manifests
+When you install prometheus-operator, it installs
+[some custom resource definitions (CRDs)](https://github.com/coreos/prometheus-operator/blob/master/Documentation/user-guides/getting-started.md#related-resources).
+After installing, you can provide new manifests
 to kubernetes with `kind: Prometheus` and `kind: ServiceMonitor`, which helps
 you tailor your prometheus installation(s) to your specific use case. In this
 article, we'll keep things simple, but you should know that you get a lot of
@@ -55,13 +36,14 @@ bang for your buck by using prometheus-operator.
 
 ### Installation
 
-Here is the helm install package for prometheus-operator. I'll be using mostly
+Here is the [helm install](https://github.com/helm/charts/tree/master/stable/prometheus-operator)
+package for prometheus-operator. I'll be using mostly
 the default configuration, with the exception of a few values.
 
 ```bash
 helm install \
     -n prom-op \
-    --set \
+    --set prometheus.service.type=NodePort \
     --namespace monitoring \
     stable/prometheus-operator
 ```
@@ -73,13 +55,11 @@ to organize your kubernetes stuff into meaningful namespaces.
 
 Let's make sure the installation worked. Grab the URL to access your
 prometheus service. If you're using minikube, it's
+`minikube service prom-op-prometheus-operato-prometheus --url --namespace monitoring`.
+This could take a minute or two to show up.
 
-```
-minikube service prometheusTODO --url --namespace monitoring
-```
-
-Open prometheus in your browser and search search for TODO, then click
-Graph. All we're doing here is making sure that data is flowing from the
+Open prometheus in your browser and search search for `:node_memory_utilisation:`, then click
+Execute and then Graph. All we're doing here is making sure that data is flowing from the
 default services. We won't yet see our custom metrics, but that's what
 we'll configure next.
 
@@ -89,25 +69,29 @@ Prometheus operator introduces the concept of service monitors. They work
 basically like this: Prometheus is configured to select ServiceMonitors
 based on labels. ServiceMonitors are configured to select Services based
 on labels and namespaces. Pods are then identified via the Services, and
-subsequently scraped for metrics. Check out this troubleshooting guide for
-some super sweet explanation.
+subsequently scraped for metrics. Check out
+[this troubleshooting guide](https://github.com/coreos/prometheus-operator/blob/master/Documentation/troubleshooting.md#overview-of-servicemonitor-tagging-and-related-elements)
+for some super sweet explanation.
 
 Our Prometheus instance is already configured, by default, to select all
-ServiceMonitors which have the label TODO. By default prometheus-operator creates
-a ServiceMonitor that Prometheus sees, but that ServiceMonitor isn't configured
+ServiceMonitors which have the label `release=prom-op`. You can inspect that via
+`kubectl get prometheus -n monitoring -o yaml`, inspecting the `serviceMonitorSelector`
+key. By default prometheus-operator creates several default ServiceMonitors that
+Prometheus sees, but those ServiceMonitors aren't configured
 to select our app's service. Let's make another ServiceMonitor which selects our
 app's Service, and which is also discoverable by our Prometheus instance.
 
-TODO ServiceMonitor.
+`gist:68bacf0baad08fd027ad4da1e4cd182e#service-monitor.yaml`
 
 ### Check Prometheus
 
 Our Prometheus pod has a container which should update it's configuration,
 so we shouldn't have to do anything for Prometheus to pick up our new ServiceMonitor.
-Let's open the Prometheus URL and check out it's configuration. We should be able
-to see our new ServiceMonitor show up.
+Let's open the Prometheus URL and check out it's configuration under
+Status->Configuration. We should be able to see our new
+ServiceMonitor show up after a few minutes.
 
-Now we should be able to see our cm_connection_count custom metric in the
+Now we should be able to see our `connection_count` custom metric in the
 query search. Let's make sure it's showing up!
 
 Sweet, Prometheus is doing everything it needs to do. Next, we need to
@@ -116,22 +100,29 @@ Horizontal Pod Autoscaler can see it.
 
 ## Prometheus Adapter
 
-Prometheus adapter is a great plugin which connects the dots between
+[Prometheus adapter](https://github.com/DirectXMan12/k8s-prometheus-adapter)
+is a great plugin which connects the dots between
 Prometheus and the kubernetes custom metrics API. Let's install it.
 
 ```bash
 helm install -n prom-adpt \
-    --set TODO \
     --namespace monitoring \
+    --set prometheus.url=http://prom-op-prometheus-operato-prometheus.monitoring.svc \
     stable/prometheus-adapter
 ```
 
 ### Verifying the Install
 
 Let's make sure the installation is correct. You should be able to call
-`kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1` and not get an
-error message. OMG IF YOU'RE USING RANCHER LIKE I WAS, THIS IS NOT THE URL
-YOU WILL USE.
+`kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1` and see a boatload of
+output.
+
+RANCHER USERS READ THIS!
+
+Read [this page](https://rancher.com/docs/rancher/v2.x/en/k8s-in-rancher/horitzontal-pod-autoscaler/manage-hpa-with-kubectl/),
+especially the last part. The URL above is not the URL you will request
+using kubectl. You have just saved many hours of self-hate and frustration.
+Congratulations and you're welcome.
 
 ### Customizing Prometheus Adapter
 
@@ -144,12 +135,21 @@ Prometheus adapter has a bit of a learning curve with its configuration.
 Unfortunately that is hard to avoid since it's such a flexible tool. Let's
 hop in.
 
-TODO configure prometheus adapter.
+Let's check out the prometheus adapter configuration. Grab it using
+`kubectl get cm prom-adpt-prometheus-adapter -n monitoring -o yaml > prometheus-adapter-config-old.yaml`.
+Let's update the rules list by adding the following rule. Read
+[this doc](https://github.com/DirectXMan12/k8s-prometheus-adapter/blob/master/docs/config.md)
+to understand what's going on.
+
+`gist:68bacf0baad08fd027ad4da1e4cd182e#prometheus-adapter-new-rule.yaml`
+
+Apply your new good config, `prometheus-adapter-config-good.yaml` using
+`kubectl apply -f prometheus-adapter-config-good.yaml`.
 
 ### Confirm our Metrics
 
-Finally, you should be able to call
-`kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/default/namespace/pods/*`
+After a few minutes, you should be able to call
+`kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/default/namespace/pods/*/connection_count`
 and see our custom metric. You should be able to call
 `kubectl get hpa` and see that the app's HorizontalPodAutoscaler can see
 the current value.
@@ -157,10 +157,10 @@ the current value.
 ## Conclusion
 
 In these articles, we've set up an app which exposes a custom metric called
-`cm_connection_count` over a `/metrics` endpoint, a HorizontalPodAutoscaler
+`connection_count` over a `/metrics` endpoint, a HorizontalPodAutoscaler
 which watches for this custom metric to scale the app, a `prometheus-operator`
 installation with a default `Prometheus` setup, a `ServiceMonitor` to make our
-app's `Service` discoverable by `Prometheus`, a `prometheus-adapter` installation
+app's `Service` discoverable by `Prometheus`, and a `prometheus-adapter` installation
 configured to select our custom metric from `Prometheus`.
 
 There's a lot here, and unfortunately it's pretty complicated. This kubernetes
