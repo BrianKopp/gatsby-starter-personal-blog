@@ -5,7 +5,9 @@ category: kubernetes
 cover: blueprint.jpg
 ---
 
-In the previous article, I went over how to set up an application to expose
+In the
+[previous article](https://blog.codekopp.com/kubernetes-custom-metrics-pt1/),
+I went over how to set up an application to expose
 a custom metric that we want to use to scale the application, as well as
 created kubernetes manifests which included a HorizontalPodAutoscaler to
 scale the app up and down based on that metric. I left off with the app
@@ -14,6 +16,12 @@ yet know about it. In this post, I'll go over setting up your minikube cluster
 to use `prometheus` and `prometheus-adapter` to get the custom metric from
 the app and to kubernetes' custom metrics API so the HPA can see the metric
 and scale the application.
+
+Parts:
+
+* [Part 1 - introduction](https://blog.codekopp.com/kubernetes-custom-metrics-pt1/)
+* Part 2 - prometheus configuration (this post)
+* [Part 3 - (sort of) external metrics](https://blog.codekopp.com/kubernetes-custom-metrics-pt3/)
 
 Let's hop in.
 
@@ -63,6 +71,8 @@ Execute and then Graph. All we're doing here is making sure that data is flowing
 default services. We won't yet see our custom metrics, but that's what
 we'll configure next.
 
+TODO Prometheus pic
+
 ### ServiceMonitor
 
 Prometheus operator introduces the concept of service monitors. They work
@@ -81,6 +91,10 @@ Prometheus sees, but those ServiceMonitors aren't configured
 to select our app's service. Let's make another ServiceMonitor which selects our
 app's Service, and which is also discoverable by our Prometheus instance.
 
+```bash
+kubectl apply -f examples/connections-metric/manifests/service-monitor.yaml
+```
+
 `gist:68bacf0baad08fd027ad4da1e4cd182e#service-monitor.yaml`
 
 ### Check Prometheus
@@ -93,6 +107,8 @@ ServiceMonitor show up after a few minutes.
 
 Now we should be able to see our `connection_count` custom metric in the
 query search. Let's make sure it's showing up!
+
+TODO prometheus pic
 
 Sweet, Prometheus is doing everything it needs to do. Next, we need to
 get this Prometheus custom metric over to the custom metrics API so our
@@ -107,9 +123,19 @@ Prometheus and the kubernetes custom metrics API. Let's install it.
 ```bash
 helm install -n prom-adpt \
     --namespace monitoring \
-    --set prometheus.url=http://prom-op-prometheus-operato-prometheus.monitoring.svc \
+    -f examples/connections-metric/manifests/prom-adpt-values.yaml \
     stable/prometheus-adapter
 ```
+
+In the `prom-adpt-values.yaml` file, we specify the prometheus URL as well
+as a custom rule to pull our connection_count metric from prometheus.
+
+`gist:68bacf0baad08fd027ad4da1e4cd182e#prom-adpt-values.yaml`
+
+There is a bit of a learning curve for the prometheus-adapter configuration.
+Unfortunately, that's hard to avoid since it's such a flexible tool.
+The repo has good documentation describing what's going on.
+[Read it here](https://github.com/DirectXMan12/k8s-prometheus-adapter/blob/master/docs/config.md).
 
 ### Verifying the Install
 
@@ -124,32 +150,10 @@ especially the last part. The URL above is not the URL you will request
 using kubectl. You have just saved many hours of self-hate and frustration.
 Congratulations and you're welcome.
 
-### Customizing Prometheus Adapter
-
-Prometheus adapter grabs a handful of metrics from Prometheus by default.
-It doesn't grab everything because that could be overwhelming. Instead,
-it ships with a default configuration which grabs some metrics. It won't
-grab our metrics out of the box.
-
-Prometheus adapter has a bit of a learning curve with its configuration.
-Unfortunately that is hard to avoid since it's such a flexible tool. Let's
-hop in.
-
-Let's check out the prometheus adapter configuration. Grab it using
-`kubectl get cm prom-adpt-prometheus-adapter -n monitoring -o yaml > prometheus-adapter-config-old.yaml`.
-Let's update the rules list by adding the following rule. Read
-[this doc](https://github.com/DirectXMan12/k8s-prometheus-adapter/blob/master/docs/config.md)
-to understand what's going on.
-
-`gist:68bacf0baad08fd027ad4da1e4cd182e#prometheus-adapter-new-rule.yaml`
-
-Apply your new good config, `prometheus-adapter-config-good.yaml` using
-`kubectl apply -f prometheus-adapter-config-good.yaml`.
-
 ### Confirm our Metrics
 
 After a few minutes, you should be able to call
-`kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/default/namespace/pods/*/connection_count`
+`kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/default/pods/*/connection_count`
 and see our custom metric. You should be able to call
 `kubectl get hpa` and see that the app's HorizontalPodAutoscaler can see
 the current value.
@@ -171,3 +175,6 @@ it **will** take some learning, but it **probably** will be sweet when you're do
 
 I'd love to hear if this was helpful. If you have any questions, hit me up in the
 kubernetes slack.
+
+In the next post, we'll see how we can scale our workloads based on some external
+quantity. See you there!
