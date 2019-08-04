@@ -1,6 +1,6 @@
 ---
 title: Kubernetes Custom Metrics (part 3)
-subTitle: More custom metrics
+subTitle: External metrics
 category: kubernetes
 cover: blueprint.jpg
 ---
@@ -71,7 +71,7 @@ In our previous articles, we set up prometheus to scrape node apps using
 a custom ServiceMonitor resource definition. Check in prometheus to see
 if our metric `custom_external_metric` shows up.
 
-TODO Prometheus pic.
+![Prometheus external metric](./external-metric.png)
 
 ## Worker that Scales
 
@@ -81,14 +81,9 @@ looks, my app basically logs some stuff and then sits around.
 
 `gist:c13f1b3a81f1b4020ed68438c89552cc#worker-fake.js`
 
-Next, we'll make a couple manifest files. The deployment and service manifests
-are straightforward.
-
-`gist:c13f1b3a81f1b4020ed68438c89552cc#worker-deployment.js`
-
-`gist:c13f1b3a81f1b4020ed68438c89552cc#worker-service.js`
-
-Next, let's take a look at the manifest for the horizontal pod autoscaler.
+We'll make a couple manifest files. The deployment and service manifests
+are straightforward. Let's take a look at the manifest for the
+horizontal pod autoscaler.
 
 `gist:c13f1b3a81f1b4020ed68438c89552cc#worker-hpa.js`
 
@@ -116,7 +111,7 @@ helm install -n prom-adpt --namespace monitoring \
     stable/prometheus-adapter
 ```
 
-TODO prom-adpt-values.yaml GIST.
+`gist:c13f1b3a81f1b4020ed68438c89552cc#prom-adpt-values.js`
 
 In a few minutes you should be able to validate the
 `/apis/external.metrics.k8s.io` endpoint using
