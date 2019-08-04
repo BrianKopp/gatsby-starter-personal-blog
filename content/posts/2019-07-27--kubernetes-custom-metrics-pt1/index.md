@@ -89,9 +89,6 @@ Make a Dockerfile.
 
 `gist:68bacf0baad08fd027ad4da1e4cd182e#Dockerfile`
 
-Then I run `docker build . -t briankopp/k8s-custom-connections-metric:1.0.0`,
-and then push it using `docker push briankopp/k8s-custom-connections-metric:1.0.0`.
-
 ## Set Up Minikube
 
 I'll be using `minikube` in this post for simplicity. Some things will be

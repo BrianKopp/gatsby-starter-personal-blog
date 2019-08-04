@@ -71,7 +71,7 @@ Execute and then Graph. All we're doing here is making sure that data is flowing
 default services. We won't yet see our custom metrics, but that's what
 we'll configure next.
 
-TODO Prometheus pic
+![Prometheus node memory utilization](./node-memory-utilization.png)
 
 ### ServiceMonitor
 
@@ -108,7 +108,7 @@ ServiceMonitor show up after a few minutes.
 Now we should be able to see our `connection_count` custom metric in the
 query search. Let's make sure it's showing up!
 
-TODO prometheus pic
+![Prometheus connection count](./connection-count.png)
 
 Sweet, Prometheus is doing everything it needs to do. Next, we need to
 get this Prometheus custom metric over to the custom metrics API so our
