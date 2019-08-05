@@ -27,7 +27,15 @@ using something other than CPU or memory, and I'm all these custom API names,
 prometheus, prometheus-adapter, all the things. Why is this so hard? Buckle up and
 deal with it. That's what's required, and that's where we're going.
 
-But first, let's get our app up and running.
+But first, let's get our app up and running. Follow along in my
+[github repository](https://github.com/BrianKopp/kubernetes-custom-metrics)
+with the example code for these posts.
+
+Parts:
+
+* Part 1 - introduction (this post)
+* [Part 2 - prometheus configuration](https://blog.codekopp.com/kubernetes-custom-metrics-pt2/)
+* [Part 3 - (sort of) external metrics](https://blog.codekopp.com/kubernetes-custom-metrics-pt3/)
 
 ## Example App - Socket-IO Server
 
@@ -81,9 +89,6 @@ Make a Dockerfile.
 
 `gist:68bacf0baad08fd027ad4da1e4cd182e#Dockerfile`
 
-Then I run `docker build . -t briankopp/k8s-custom-connections-metric:1.0.0`,
-and then push it using `docker push briankopp/k8s-custom-connections-metric:1.0.0`.
-
 ## Set Up Minikube
 
 I'll be using `minikube` in this post for simplicity. Some things will be
@@ -117,17 +122,23 @@ you should stop reading this and go read k8s docs.
 `gist:68bacf0baad08fd027ad4da1e4cd182e#horizontal-pod-autoscaler.yaml`
 
 ```bash
-kubectl apply -f manifests/deployment.yaml
-kubectl apply -f manifests/service.yaml
-kubectl apply -f manifests/horizontal-pod-autoscaler.yaml
+kubectl apply -f examples/connections-metric/manifests/deployment.yaml
+kubectl apply -f examples/connections-metric/manifests/service.yaml
+kubectl apply -f examples/connections-metric/manifests/horizontal-pod-autoscaler.yaml
 ```
 
-Confirm the sample app pod is running.
-Make sure you can access the service, either via minikube, or proxy your
-service using kubectl. Request a `GET /connection` a few times and see
-how the number increments. Request it more than 20 times, and you'll see
-how it starts simulating closing client connections as a defense
-mechanism.
+Confirm the sample app pod is running. Make sure you can access
+the service. Grab its URL using
+`minikube service connections-metric-svc --url`.
+Run the following command to start hitting the app with "connections".
+
+```bash
+for run in {1..60}; do curl <URL>/connection && sleep 1; done
+```
+
+You should see how the number doesn't go too much higher
+than 20. That is because the app is simulating closing connections
+as a defense mechanism.
 
 ## Wrapping Up This Post
 
@@ -135,4 +146,6 @@ Check the horizontal pod autoscaler using `kubectl get hpa`.
 You'll see it has no idea what
 the actual value is. That's because it's looking for the `/apis/custom.metrics.k8s.io`
 API, which we haven't yet brought to the table. We'll get `prometheus-adapter`
-up and running in the next post to serve that API with data from `prometheus`.
+up and running in the
+[next post](https://blog.codekopp.com/kubernetes-custom-metrics-pt1/)
+to serve that API with data from `prometheus`.
