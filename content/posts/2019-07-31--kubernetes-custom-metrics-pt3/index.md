@@ -85,7 +85,7 @@ We'll make a couple manifest files. The deployment and service manifests
 are straightforward. Let's take a look at the manifest for the
 horizontal pod autoscaler.
 
-`gist:c13f1b3a81f1b4020ed68438c89552cc#worker-hpa.js`
+`gist:c13f1b3a81f1b4020ed68438c89552cc#worker-hpa.yaml`
 
 Here, we are specifying that our worker deployment should scale based off an
 **external** metric, and that we will have an *average target value*, which means
@@ -111,7 +111,7 @@ helm install -n prom-adpt --namespace monitoring \
     stable/prometheus-adapter
 ```
 
-`gist:c13f1b3a81f1b4020ed68438c89552cc#prom-adpt-values.js`
+`gist:c13f1b3a81f1b4020ed68438c89552cc#prom-adpt-values.yaml`
 
 In a few minutes you should be able to validate the
 `/apis/external.metrics.k8s.io` endpoint using
